@@ -67,14 +67,23 @@ def isDateTime(testString):
 
 def scrapeStatementForInfo(attachment):
     data = []
-    soup = BeautifulSoup(attachment)
+    soup = BeautifulSoup(attachment, "lxml")
     rows = soup.find_all('tr')
+    startInTable = False
+    rowList = []
     for td in rows:
         rowData = td.find_all('td')
         if (rowData):
-            rowText = rowData.find(text = True)
-            if (isDateTime(rowText)):
-                data.append(rowData)
+            for rowElem in rowData:
+                rowText = rowElem.find(text = True)
+                if (rowText):
+                    if (isDateTime(rowText.replace('Datum: ', ''))):
+                        if (rowList):
+                            data.append(rowList)
+                        startInTable = True
+                        rowList = []
+                    if (startInTable):
+                        rowList.append(rowText)
     return data
 
 def downloadMails(raffaMailIds, service, user_id):
